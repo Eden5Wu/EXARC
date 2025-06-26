@@ -83,13 +83,13 @@
 1.	確保安裝了 degit (如果尚未安裝)：
 ```
 npm install -g degit
-\# 或 (使用 pnpm)
+# 或 (使用 pnpm)
 pnpm install -g degit
 ```
 2.	複製專案模板：
 ```
 npm dlx degit Eden5Wu/EXARC your-new-project-name
-\# 或 (使用 pnpm)
+# 或 (使用 pnpm)
 pnpm dlx degit Eden5Wu/EXARC your-new-project-name
 ```
 請將 your-new-project-name 替換為您實際的專案名稱。
