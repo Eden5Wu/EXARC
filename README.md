@@ -81,13 +81,13 @@
 # 如何使用 (快速啟動專案)
 您可以透過 degit 工具快速複製此專案模板，開始您的開發：
 1.	確保安裝了 degit (如果尚未安裝)：
-```
+```console
 npm install -g degit
 # 或 (使用 pnpm)
 pnpm install -g degit
 ```
 2.	複製專案模板：
-```
+```console
 npm dlx degit Eden5Wu/EXARC your-new-project-name
 # 或 (使用 pnpm)
 pnpm dlx degit Eden5Wu/EXARC your-new-project-name
@@ -95,17 +95,17 @@ pnpm dlx degit Eden5Wu/EXARC your-new-project-name
 請將 your-new-project-name 替換為您實際的專案名稱。
 
 3.	進入專案目錄並安裝依賴：
-```
+```console
 cd your-new-project-name
 npm install
-\# 或 (使用 pnpm)
+# 或 (使用 pnpm)
 pnpm install
 ```
 
 4.	啟動開發伺服器：
-```
+```console
 npm run dev
-\# 或 (使用 pnpm)
+# 或 (使用 pnpm)
 pnpm run dev
 ```
 5. 伺服器啟動後：
