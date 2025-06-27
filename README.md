@@ -6,7 +6,6 @@
 
 ## 專案結構
 ```
-+root
 +public
   +ajax
     +apiExecutor.js   // 基礎 API 執行器
@@ -14,6 +13,9 @@
     +apiProxy.js      // 前端 API 代理 (由後端動態生成)
   +index.html       // 靜態測試頁面
   +main.js          // 前端主邏輯
+  +jquery-mobile-demo.html // jQuery Demo
+  +react-demo.html         // React Demo
+  +vue-demo.html           // VUE Demo
 +generateApiProxy.js// 後端腳本：負責動態生成 apiProxy.js
 +package.json       // 專案依賴與配置
 +server.js          // Express.js 後端伺服器主入口
