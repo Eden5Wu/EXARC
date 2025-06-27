@@ -19,6 +19,7 @@
 +generateApiProxy.js// 後端腳本：負責動態生成 apiProxy.js
 +package.json       // 專案依賴與配置
 +server.js          // Express.js 後端伺服器主入口
++.env               // 環境變數配置 (包含 JWT_SECRET 和 USE_AUTH)
 ```
 
 ---
@@ -58,6 +59,60 @@
     * 它配置了 Express 伺服器、中介層、定義了所有的後端 API 路由。
     * 在開發模式下，它會引用並執行 `generateApiProxy.js` 腳本來自動更新前端的 `apiProxy.js`。
     * **如何使用：** 定義您的後端 API 端點，並啟動 Express 伺服器。
+
+---
+
+## 認證機制 (Authentication) 詳情
+
+此框架整合了基於 **JWT (JSON Web Token)** 的無狀態認證機制，並提供可切換的啟用選項：
+
+* **後端控制 (透過 `.env`)**:
+    * 在專案根目錄的 `.env` 檔案中，您可以設定 `USE_AUTH=true` 來啟用後端對 API 路由的 Token 檢查。如果設定為 `false` (或不設定)，則所有 API 路由皆可公開存取。
+    * `JWT_SECRET` 變數定義了用於簽發和驗證 Token 的秘密金鑰，**請務必在生產環境中更改為複雜且安全的字串**。
+    * 範例 `.env` 設定:
+        ```
+        PORT=8893
+        NODE_ENV=development
+        USE_AUTH=true
+        JWT_SECRET=您的超級秘密金鑰請務必更改它並保持安全！
+        ```
+* **前端控制 (透過 JS 程式碼)**:
+    * 在 `public/main.js` 以及各個 `*-demo.html` 檔案 (例如 `react-demo.html`, `vue-demo.html`) 中，有一個 `ENABLE_LOGIN` 常數。您可以將其設定為 `true` 或 `false` 來控制前端是否顯示登入/登出相關的 UI 和邏輯。這使得您可以在開發期間獨立測試有/無認證的功能。
+* **預設登入憑證**:
+    * 為了方便測試，預設的登入帳號為 `testuser`，密碼為 `password123`。您可以在 `server.js` 的 `/api/login` 路由中修改此驗證邏輯。
+* **Token 的管理**:
+    * 成功登入後，後端會返回一個 JWT Token。`authService.js` 會將此 Token 儲存到瀏覽器的 `localStorage` 中，並自動設定給 `apiExecutor.js`，以便後續所有 API 請求都會自動帶上 `Authorization` header。
+
+---
+
+## 如何新增 API 端點
+
+要在此框架中新增一個 API 端點，您需要修改 `server.js` 中的兩個部分：
+
+1.  **在 `apiMetadata` 物件中定義新的 API 元數據**:
+    * 這告訴 `generateApiProxy.js` 這個新 API 的名稱、HTTP 方法和參數類型。類似 TypeScript 的 Interface
+    * 例如，新增一個 `createUser` 的 POST 請求：
+        ```javascript
+        const apiMetadata = {
+            // ... 現有 API ...
+            'createUser': { method: 'POST', paramName: 'userData', paramType: 'body' }
+        };
+        ```
+    * `paramName` 是期望在請求體或查詢參數中接收的參數名稱。
+    * `paramType` 可以是 `'query'` (用於 GET/DELETE 請求的 URL 查詢參數) 或 `'body'` (用於 POST/PUT 請求的 JSON 主體)。
+
+2.  **在 `server.js` 中定義對應的 Express 路由**:
+    * 這實際處理來自前端的請求並返回回應。
+    * 承接上述 `createUser` 的例子：
+        ```javascript
+        app.post('/api/createUser', (req, res) => {
+            const userData = req.body.userData; // 假設前端會發送 { userData: { name: '...', email: '...' } }
+            // 在這裡處理用戶創建邏輯，例如存儲到資料庫
+            res.json({ message: '用戶創建成功', user: userData });
+        });
+        ```
+
+完成這兩步後，重新啟動伺服器 (`npm run dev`)，`generateApiProxy.js` 就會自動更新 `public/ajax/apiProxy.js`，您就可以在前端直接呼叫 `apiProxy.createUser(yourUserData)` 了。
 
 ---
 
