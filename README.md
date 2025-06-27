@@ -48,6 +48,14 @@
     * `index.html` 是前端的進入點，載入所有必要的 JavaScript 模組。
     * `main.js` 是前端的應用程式邏輯，它示範了如何使用 `apiProxy.js` 來呼叫後端 API 並顯示回應。
     * **如何使用：** 這是您編寫前端使用者介面和互動邏輯的地方，使用 `apiProxy` 來與後端溝通。
+ 
+* **`public/jquery-mobile-demo.html`, `public/react-demo.html`, `public/vue-demo.html`**
+
+    * 這些是額外的範例頁面，展示了如何將 `apiProxy` 和認證服務整合到常見的前端框架（jQuery Mobile, React, Vue.js）中。每個 demo 都包含了基本的 API 呼叫和登入/登出功能，您可以參考它們來將框架整合到您選擇的前端技術棧。
+
+* **`authMiddleware.js`**
+
+    * 此模組提供一個彈性認證中介軟體。它會嘗試驗證 JWT Token，但不會強制中斷請求。驗證結果（req.isAuthenticated 和 req.user）會附加到請求物件上，讓路由處理器根據需要進行進一步的存取控制。
 
 * **`generateApiProxy.js`**
     * 這是一個**後端 Node.js 腳本**，在 `server.js` 啟動時被調用（僅限開發模式）。
