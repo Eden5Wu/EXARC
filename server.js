@@ -5,7 +5,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken'); // 導入 jsonwebtoken 用於簽發 Token
-const authenticateTokenFlexible = require('./authMiddleware'); // 導入您的認證中介軟體
+const authenticateTokenStrict = require('./authMiddleware'); // 導入您新的嚴格認證中介軟體
 
 // 載入 .env 檔案中的環境變數
 dotenv.config();
@@ -38,61 +38,65 @@ const apiMetadata = {
 
 // 新增：根據環境變數決定是否應用認證中介軟體
 if (useAuth) {
-    // 將彈性認證中介軟體應用於所有 /api 路由
-    console.log('認證功能已啟用：所有 /api/* 路由將檢查 JWT Token。');
-    app.use('/api', authenticateTokenFlexible); //
+    // 將嚴格認證中介軟體應用於所有 /api 路由
+    console.log('認證功能已啟用：所有 /api/* 路由將進行嚴格 JWT Token 檢查。');
+    // 在 login 路由之前套用中介軟體
+    // 確保登入本身不需要 Token
+    app.post('/api/login', (req, res) => {
+        // 這裡只是個示範，實際應用中應從資料庫驗證使用者。
+        const { username, password } = req.body;
+        // 假設驗證成功
+        if (username === 'testuser' && password === 'password123') {
+            // 生成一個 JWT Token
+            // payload 應該包含用戶的識別資訊，例如 ID 和角色
+            const user = { id: 1, name: username, role: 'admin' };
+            const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '1h' });
+            // 返回 Token 給前端
+            return res.json({ message: '登入成功', token: token, user: user });
+        }
+        // 驗證失敗
+        res.status(401).json({ message: '無效的使用者名稱或密碼' });
+    });
+
+    app.use('/api', authenticateTokenStrict); // 將嚴格模式中介軟體應用於所有其他 /api 路由
 } else {
     console.log('認證功能已停用。所有 API 路由皆可公開存取。');
+    // 即使認證停用，也需要提供 login 路由
+    app.post('/api/login', (req, res) => {
+        const { username, password } = req.body;
+        if (username === 'testuser' && password === 'password123') {
+            const user = { id: 1, name: username, role: 'admin' };
+            const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '1h' });
+            return res.json({ message: '登入成功 (認證停用)', token: token, user: user });
+        }
+        res.status(401).json({ message: '無效的使用者名稱或密碼' });
+    });
 }
 
-// 新增：登入 API 路由
-app.post('/api/login', (req, res) => {
-    // 這裡只是個示範，實際應用中應從資料庫驗證使用者。
-    const { username, password } = req.body;
-    // 假設驗證成功
-    if (username === 'testuser' && password === 'password123') {
-        // 生成一個 JWT Token
-        // payload 應該包含用戶的識別資訊，例如 ID 和角色
-        const user = { id: 1, name: username, role: 'admin' };
-        const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '1h' });
-        // 返回 Token 給前端
-        return res.json({ message: '登入成功', token: token, user: user });
-    }
-    // 驗證失敗
-    res.status(401).json({ message: '無效的使用者名稱或密碼' });
-});
-
 // API 路由
+// 這些路由現在將在 `useAuth` 為 true 時受到 `authenticateTokenStrict` 保護。
 app.get('/api/echomsg', (req, res) => {
+    // 在嚴格模式下，如果能執行到這裡，req.user 一定存在。
     const msg = req.query.msg || 'No message provided';
-    let response = { received: msg, echoed: msg };
-
-    // 新增：如果認證啟用，根據驗證結果調整回應
-    if (useAuth) {
-        if (req.isAuthenticated) { //
-            response.authStatus = '已認證';
-            response.user = req.user; //
-        } else {
-            response.authStatus = '未認證';
-        }
-    }
+    const response = { 
+        received: msg, 
+        echoed: msg,
+        authStatus: '已認證', // 在嚴格模式下，只有認證過的請求才能到達此處
+        user: req.user // 附加用戶資訊
+    };
     res.json(response);
 });
 
 app.post('/api/reversemmsg', (req, res) => {
+    // 在嚴格模式下，如果能執行到這裡，req.user 一定存在。
     const message = req.body.message || '';
     const reversed = message.split('').reverse().join('');
-    let response = { original: message, reversed: reversed };
-
-    // 新增：如果認證啟用，根據驗證結果調整回應
-    if (useAuth) {
-        if (req.isAuthenticated) { //
-            response.authStatus = '已認證';
-            response.user = req.user; //
-        } else {
-            response.authStatus = '未認證';
-        }
-    }
+    const response = { 
+        original: message, 
+        reversed: reversed,
+        authStatus: '已認證', // 在嚴格模式下，只有認證過的請求才能到達此處
+        user: req.user // 附加用戶資訊
+    };
     res.json(response);
 });
 
