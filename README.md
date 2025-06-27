@@ -16,6 +16,8 @@
   +jquery-mobile-demo.html // jQuery Demo
   +react-demo.html         // React Demo
   +vue-demo.html           // VUE Demo
+  +apiProxyInvoker.html // API 動態調用器 HTML 介面
+  +apiProxyInvoker.js   // API 動態調用器 JavaScript 邏輯
 +generateApiProxy.js// 後端腳本：負責動態生成 apiProxy.js
 +package.json       // 專案依賴與配置
 +server.js          // Express.js 後端伺服器主入口
@@ -52,6 +54,13 @@
 * **`public/jquery-mobile-demo.html`, `public/react-demo.html`, `public/vue-demo.html`**
 
     * 這些是額外的範例頁面，展示了如何將 `apiProxy` 和認證服務整合到常見的前端框架（jQuery Mobile, React, Vue.js）中。每個 demo 都包含了基本的 API 呼叫和登入/登出功能，您可以參考它們來將框架整合到您選擇的前端技術棧。
+ 
+
+* **`public/apiProxyInvoker.html` 與 `public/apiProxyInvoker.js`**
+    * 這兩個檔案共同提供了一個自動化、互動式的 API 調用與測試介面。
+    * `apiProxyInvoker.js` 會動態讀取 `public/ajax/apiProxy.js` 的原始碼，解析其中的 JSDoc 註解和函數參數，並在 `apiProxyInvoker.html` 中為每個 API 方法生成一個可操作的表單。
+    * 這使得開發者無需任何手動配置，即可快速查看所有後端 API 的文件並進行測試。
+    * **如何使用：** 在開發模式下，您可以直接在瀏覽器中訪問此頁面進行 API 測試和探索。
 
 * **`authMiddleware.js`**
 
