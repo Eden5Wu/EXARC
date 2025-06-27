@@ -59,7 +59,7 @@ function buildUrl(endpoint, queryParams = {}) {
  *
  * @param {string} method - HTTP 方法 ('GET', 'POST', 'PUT', 'DELETE')。
  * @param {string} endpoint - API 端點路徑，不包含基礎路徑和 `/api/`。
- * @param {Object} [data=null] - 請求體數據，用於 'POST' 或 'PUT' 請求。將被轉換為 JSON 字串。
+ * @param {Object|Array} [data=null] - 請求體數據，用於 'POST' 或 'PUT' 請求。將被轉換為 JSON 字串。
  * @param {Object} [queryParams={}] - 查詢參數物件，用於 'GET' 或 'DELETE' 請求。
  * @returns {Promise<Object|string>} 成功時解析為伺服器回應的 JSON 物件或文本；失敗時拋出包含錯誤信息的 Error 物件。
  * @throws {Error} 如果請求失敗或伺服器返回非 2xx 狀態碼。
@@ -81,12 +81,11 @@ async function executeApi(method, endpoint, data = null, queryParams = {}) {
         method: method,
         headers: headers,
         // credentials: 'include' // 如果您的 API 需要發送瀏覽器管理的 Cookie，請取消註解此行
-                                 // 但由於您選擇無狀態 Token，通常不需要。
     };
 
     // 對於 POST 或 PUT 請求，將數據添加到請求體中
     if (data !== null && (method === 'POST' || method === 'PUT')) {
-        config.body = JSON.stringify(data);
+        config.body = JSON.stringify(data); // 始終將數據 JSON.stringify
     }
 
     try {
@@ -96,35 +95,30 @@ async function executeApi(method, endpoint, data = null, queryParams = {}) {
         if (!response.ok) {
             let errorData = null;
             try {
-                // 嘗試解析錯誤回應的 JSON 數據 (如果伺服器提供了 JSON 格式的錯誤)
                 errorData = await response.json();
             } catch (e) {
-                // 如果回應不是 JSON 格式，則直接使用回應文本作為錯誤數據
                 errorData = await response.text();
             }
-            // 創建一個新的 Error 物件，並附帶更詳細的錯誤信息和原始回應資訊
             const error = new Error(`API 請求失敗: ${response.status} ${response.statusText}`);
-            error.response = { // 將原始回應資訊附加到錯誤物件上，便於上層處理
+            error.response = {
                 status: response.status,
                 statusText: response.statusText,
                 data: errorData
             };
-            throw error; // 拋出錯誤，讓上層呼叫者處理
+            throw error;
         }
 
         // 嘗試解析 JSON 回應
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-            return await response.json(); // 解析為 JSON 物件
+            return await response.json();
         } else {
-            // 如果回應不是 JSON 類型 (例如是純文本、HTML 等)，則直接返回文本內容
             return await response.text();
         }
 
     } catch (error) {
-        // 捕獲網路錯誤 (例如斷網、CORS 問題) 或其他 `fetch` 過程中的錯誤
         console.error(`執行 API 失敗 (${method} ${endpoint}):`, error);
-        throw error; // 重新拋出錯誤，以便上層呼叫者處理
+        throw error;
     }
 }
 
@@ -136,9 +130,10 @@ async function executeApi(method, endpoint, data = null, queryParams = {}) {
  */
 export const api = {
     get: (endpoint, queryParams) => executeApi('GET', endpoint, null, queryParams),
+    // 修正：POST 請求不再有 postText 變體，一律使用 executeApi 預設的 JSON 處理
     post: (endpoint, data) => executeApi('POST', endpoint, data),
     put: (endpoint, data) => executeApi('PUT', endpoint, data),
     delete: (endpoint, queryParams) => executeApi('DELETE', endpoint, null, queryParams),
-    setAuth: setAuthenticationToken, // 暴露設定認證 Token 的方法
-    getAuth: getAuthenticationToken, // 暴露取得認證 Token 的方法
+    setAuth: setAuthenticationToken,
+    getAuth: getAuthenticationToken,
 };

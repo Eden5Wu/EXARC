@@ -34,7 +34,7 @@ export const apiProxy = {
      * @returns {Promise<Object|string>} 回應數據。
      */
     reversemmsg: async (message) => {
-        return handleApiCall(api.post, 'reversemmsg', { message });
+        return handleApiCall(api.post, 'reversemmsg', { message: message });
     },
 
 };
