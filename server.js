@@ -23,19 +23,6 @@ app.use(cookieParser()); // 用於解析 Cookie
 // 靜態檔案服務
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ==== API 元數據定義 ====
-// 在這裡集中定義您的 API 端點、方法和參數類型
-// 這些資訊會傳遞給 generateApiProxy.js 用於生成前端代理
-const apiMetadata = {
-    // echomsg 是 GET 請求，參數 'msg' 來自 query
-    'echomsg': { method: 'GET', paramName: 'msg', paramType: 'query' },
-    // reversemmsg 是 POST 請求，參數 'message' 是 JSON body
-    'reversemmsg': { method: 'POST', paramName: 'message', paramType: 'body' },
-    // 新增：login 是 POST 請求，參數 'credentials' 是 JSON body
-    'login': { method: 'POST', paramName: 'credentials', paramType: 'body' }
-};
-// =============================
-
 // 新增：根據環境變數決定是否應用認證中介軟體
 if (useAuth) {
     // 將嚴格認證中介軟體應用於所有 /api 路由
