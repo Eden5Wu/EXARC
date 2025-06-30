@@ -42,7 +42,7 @@
     * **如何使用：** 您可以直接在前端呼叫 `login(credentials)`、`logout()`、`isAuthenticated()` 等函數來管理用戶認證狀態。
 
 * **`public/ajax/apiProxy.js`**
-    * 這是**前端 API 呼叫的核心代理模組**。它提供了一系列語義化的函數，讓前端可以直接以 `apiProxy.yourApiName(...args)` 的方式呼叫後端 API，而無需關心底層的 URL 路徑、HTTP 方法或參數傳遞方式。
+    * 這是**前端 API 呼叫的核心代理模組**。它提供了一系列語義化的函數，讓前端可以直接以 `apiProxy.yourApiName(params)` 的方式呼叫後端 API，而無需關心底層的 URL 路徑、HTTP 方法或參數傳遞方式。
     * **動態生成：** 這個檔案的內容**不會**手動修改。它會在您啟動後端伺服器時，由 `generateApiProxy.js` 腳本根據 `server.js` 中定義的後端路由自動生成或更新。這確保了前端 API 介面與後端始終保持同步。
     * **如何使用：** 在您的前端 JavaScript (`main.js` 或其他模組) 中，直接 `import { apiProxy } from './ajax/apiProxy.js';`，然後調用例如 `apiProxy.echomsg(message)` 或 `apiProxy.reversemmsg(data)`。
 
@@ -52,7 +52,6 @@
     * **如何使用：** 這是您編寫前端使用者介面和互動邏輯的地方，使用 `apiProxy` 來與後端溝通。
  
 * **`public/jquery-mobile-demo.html`, `public/react-demo.html`, `public/vue-demo.html`**
-
     * 這些是額外的範例頁面，展示了如何將 `apiProxy` 和認證服務整合到常見的前端框架（jQuery Mobile, React, Vue.js）中。每個 demo 都包含了基本的 API 呼叫和登入/登出功能，您可以參考它們來將框架整合到您選擇的前端技術棧。
  
 
@@ -63,12 +62,9 @@
     * **如何使用：** 在開發模式下，您可以直接在瀏覽器中訪問此頁面進行 API 測試和探索。
 
 * **`authMiddleware.js`**
-
-    此模組提供一個嚴格認證中介軟體，用於確保請求的 Authorization 標頭包含一個有效的 JWT Token。
-
-    * 如果 Token 缺失或無效（例如過期、被篡改），它會立即中斷請求並返回 401 Unauthorized 或 403 Forbidden 錯誤。
-
-    * 如果 Token 驗證成功，它會將解碼後的用戶資訊附加到 req.user 物件上，然後將控制權傳遞給下一個處理器。
+    * 此模組提供一個**嚴格認證中介軟體**。它會嘗試驗證 JWT Token。
+    * 如果 Token 缺失或無效（例如過期、被篡改），它會立即中斷請求並返回 `401 Unauthorized` 或 `403 Forbidden` 錯誤。
+    * 如果 Token 驗證成功，它會將解碼後的用戶資訊附加到 `req.user` 物件上，然後將控制權傳遞給下一個處理器。
 
 * **`generateApiProxy.js`**
     * 這是一個**後端 Node.js 腳本**，在 `server.js` 啟動時被調用（僅限開發模式）。
@@ -85,7 +81,7 @@
 
 ## 認證機制 (Authentication) 詳情
 
-此框架整合了基於 **JWT (JSON Web Token)** 的無狀態認證機制，並提供可切換的啟用選項：
+此框架整合了基於 **JWT (JSON Web Token)** 的無狀態認證機制，並提供可切換的啟用選項。
 
 * **後端控制 (透過 `.env`)**:
     * 在專案根目錄的 `.env` 檔案中，您可以設定 `USE_AUTH=true` 來啟用後端對 API 路由的 Token 檢查。如果設定為 `false` (或不設定)，則所有 API 路由皆可公開存取。
@@ -108,9 +104,9 @@
 
 ## 如何新增 API 端點
 
-要在此框架中新增一個 API 端點，您需要修改 `server.js` 中的兩個部分：
+要在此框架中新增一個 API 端點，您只需要在 `server.js` 中定義對應的 Express 路由即可。
 
-1.  **在 server.js 中定義新的 Express 路由:**:
+1.  **在 `server.js` 中定義新的 Express 路由**:
     * `generateApiProxy.js` 腳本會自動遍歷 Express 路由堆疊來生成前端代理。因此，您只需要像平常一樣定義 Express 路由，代理檔案就會在伺服器啟動時自動更新。
     * 例如，新增一個 `createUser` 的 POST 請求：
         ```javascript
@@ -120,21 +116,8 @@
             res.json({ message: '用戶創建成功', user: userData });
         });
         ```
-    * `paramName` 是期望在請求體或查詢參數中接收的參數名稱。
-    * `paramType` 可以是 `'query'` (用於 GET/DELETE 請求的 URL 查詢參數) 或 `'body'` (用於 POST/PUT 請求的 JSON 主體)。
 
-2.  **在 `server.js` 中定義對應的 Express 路由**:
-    * 這實際處理來自前端的請求並返回回應。
-    * 承接上述 `createUser` 的例子：
-        ```javascript
-        app.post('/api/createUser', (req, res) => {
-            const userData = req.body.userData; // 假設前端會發送 { userData: { name: '...', email: '...' } }
-            // 在這裡處理用戶創建邏輯，例如存儲到資料庫
-            res.json({ message: '用戶創建成功', user: userData });
-        });
-        ```
-
-完成這兩步後，重新啟動伺服器 (`npm run dev`)，`generateApiProxy.js` 就會自動更新 `public/ajax/apiProxy.js`，您就可以在前端直接呼叫 `apiProxy.createUser(yourUserData)` 了。
+完成這一步後，重新啟動伺服器 (`npm run dev`)，`generateApiProxy.js` 就會自動更新 `public/ajax/apiProxy.js`，您就可以在前端直接呼叫 `apiProxy.createUser(yourUserData)` 了。
 
 ---
 
@@ -157,6 +140,9 @@
   }
 }
 ```
+
+---
+
 # 如何使用 (快速啟動專案)
 您可以透過 degit 工具快速複製此專案模板，開始您的開發：
 1.	確保安裝了 degit (如果尚未安裝)：
