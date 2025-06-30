@@ -77,7 +77,7 @@ if (useAuth) {
 // 這些路由現在將在 `useAuth` 為 true 時受到 `authenticateTokenStrict` 保護。
 app.get('/api/echomsg/:msg', (req, res) => {
     // 在嚴格模式下，如果能執行到這裡，req.user 一定存在。
-    const msg = req.query.msg || 'No message provided';
+    const msg = req.params.msg || 'No message provided';
     const response = { 
         received: msg, 
         echoed: msg,
