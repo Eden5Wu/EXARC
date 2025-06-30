@@ -42,7 +42,7 @@
     * **如何使用：** 您可以直接在前端呼叫 `login(credentials)`、`logout()`、`isAuthenticated()` 等函數來管理用戶認證狀態。
 
 * **`public/ajax/apiProxy.js`**
-    * 這是**前端 API 呼叫的核心代理模組**。它提供了一系列語義化的函數，讓前端可以直接以 `apiProxy.yourApiName(params)` 的方式呼叫後端 API，而無需關心底層的 URL 路徑、HTTP 方法或參數傳遞方式。
+    * 這是**前端 API 呼叫的核心代理模組**。它提供了一系列語義化的函數，讓前端可以直接以 `apiProxy.yourApiName(...args)` 的方式呼叫後端 API，而無需關心底層的 URL 路徑、HTTP 方法或參數傳遞方式。
     * **動態生成：** 這個檔案的內容**不會**手動修改。它會在您啟動後端伺服器時，由 `generateApiProxy.js` 腳本根據 `server.js` 中定義的後端路由自動生成或更新。這確保了前端 API 介面與後端始終保持同步。
     * **如何使用：** 在您的前端 JavaScript (`main.js` 或其他模組) 中，直接 `import { apiProxy } from './ajax/apiProxy.js';`，然後調用例如 `apiProxy.echomsg(message)` 或 `apiProxy.reversemmsg(data)`。
 
@@ -64,7 +64,11 @@
 
 * **`authMiddleware.js`**
 
-    * 此模組提供一個彈性認證中介軟體。它會嘗試驗證 JWT Token，但不會強制中斷請求。驗證結果（req.isAuthenticated 和 req.user）會附加到請求物件上，讓路由處理器根據需要進行進一步的存取控制。
+    此模組提供一個嚴格認證中介軟體，用於確保請求的 Authorization 標頭包含一個有效的 JWT Token。
+
+    * 如果 Token 缺失或無效（例如過期、被篡改），它會立即中斷請求並返回 401 Unauthorized 或 403 Forbidden 錯誤。
+
+    * 如果 Token 驗證成功，它會將解碼後的用戶資訊附加到 req.user 物件上，然後將控制權傳遞給下一個處理器。
 
 * **`generateApiProxy.js`**
     * 這是一個**後端 Node.js 腳本**，在 `server.js` 啟動時被調用（僅限開發模式）。
@@ -106,14 +110,15 @@
 
 要在此框架中新增一個 API 端點，您需要修改 `server.js` 中的兩個部分：
 
-1.  **在 `apiMetadata` 物件中定義新的 API 元數據**:
-    * 這告訴 `generateApiProxy.js` 這個新 API 的名稱、HTTP 方法和參數類型。類似 TypeScript 的 Interface
+1.  **在 server.js 中定義新的 Express 路由:**:
+    * `generateApiProxy.js` 腳本會自動遍歷 Express 路由堆疊來生成前端代理。因此，您只需要像平常一樣定義 Express 路由，代理檔案就會在伺服器啟動時自動更新。
     * 例如，新增一個 `createUser` 的 POST 請求：
         ```javascript
-        const apiMetadata = {
-            // ... 現有 API ...
-            'createUser': { method: 'POST', paramName: 'userData', paramType: 'body' }
-        };
+        app.post('/api/createUser', (req, res) => {
+            const userData = req.body; // 通常 POST 請求的數據在 req.body
+            // 在這裡處理用戶創建邏輯，例如存儲到資料庫
+            res.json({ message: '用戶創建成功', user: userData });
+        });
         ```
     * `paramName` 是期望在請求體或查詢參數中接收的參數名稱。
     * `paramType` 可以是 `'query'` (用於 GET/DELETE 請求的 URL 查詢參數) 或 `'body'` (用於 POST/PUT 請求的 JSON 主體)。
