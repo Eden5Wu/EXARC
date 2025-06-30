@@ -105,8 +105,8 @@ app.post('/api/reversemmsg', (req, res) => {
 // 僅在開發模式下生成檔案
 if (process.env.NODE_ENV !== 'production') {
     const generateApiProxyFile = require('./generateApiProxy'); // 確保路徑正確
-    // 將 Express app 實例和 apiMetadata 物件傳遞給生成函數
-    generateApiProxyFile(app, apiMetadata);
+    // 將 Express app 實例傳遞給生成函數
+    generateApiProxyFile(app);
 }
 // --- 結束新增 ---
 
