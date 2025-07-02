@@ -44,7 +44,8 @@ function buildUrl(endpoint, queryParams = {}) {
     // 結合基礎路徑與端點。API_BASE_URL 應已包含 `/api` 部分。
     let url = `${API_BASE_URL}/${endpoint}`;
 
-    const params = new URLSearchParams(queryParams);
+    const finalQueryParams = (queryParams === null || queryParams === undefined) ? {} : queryParams;
+    const params = new URLSearchParams(finalQueryParams);
     const queryString = params.toString();
 
     if (queryString) {
@@ -60,6 +61,7 @@ function buildUrl(endpoint, queryParams = {}) {
  * @param {string} method - HTTP 方法 ('GET', 'POST', 'PUT', 'DELETE')。
  * @param {string} endpoint - API 端點路徑，不包含基礎路徑和 `/api/`。
  * @param {Object|Array} [data=null] - 請求體數據，用於 'POST' 或 'PUT' 請求。將被轉換為 JSON 字串。
+ * 如果為 FormData 類型，將直接作為 body 發送；否則將被轉換為 JSON 字串。
  * @param {Object} [queryParams={}] - 查詢參數物件，用於 'GET' 或 'DELETE' 請求。
  * @returns {Promise<Object|string>} 成功時解析為伺服器回應的 JSON 物件或文本；失敗時拋出包含錯誤信息的 Error 物件。
  * @throws {Error} 如果請求失敗或伺服器返回非 2xx 狀態碼。
@@ -140,7 +142,7 @@ async function executeApi(method, endpoint, data = null, queryParams = {}, accep
  */
 export const api = {
     get: (endpoint, queryParams, accept = null) => executeApi('GET', endpoint, null, queryParams, accept),
-    post: (endpoint, data, accept = null) => executeApi('POST', endpoint, data, null, accept),
+    post: (endpoint, data, accept = null) => executeApi('POST', endpoint, data, null, accept), // 注意這裡，如果需要查詢參數，還需要額外處理
     put: (endpoint, data, accept = null) => executeApi('PUT', endpoint, data, null, accept),
     delete: (endpoint, queryParams, accept = null) => executeApi('DELETE', endpoint, null, queryParams, accept),
     setAuth: setAuthenticationToken,
