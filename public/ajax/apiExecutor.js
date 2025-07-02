@@ -140,8 +140,8 @@ async function executeApi(method, endpoint, data = null, queryParams = {}, accep
  */
 export const api = {
     get: (endpoint, queryParams, accept = null) => executeApi('GET', endpoint, null, queryParams, accept),
-    post: (endpoint, data, accept = null) => executeApi('POST', endpoint, data, accept),
-    put: (endpoint, data, accept = null) => executeApi('PUT', endpoint, data, accept),
+    post: (endpoint, data, accept = null) => executeApi('POST', endpoint, data, null, accept),
+    put: (endpoint, data, accept = null) => executeApi('PUT', endpoint, data, null, accept),
     delete: (endpoint, queryParams, accept = null) => executeApi('DELETE', endpoint, null, queryParams, accept),
     setAuth: setAuthenticationToken,
     getAuth: getAuthenticationToken,
